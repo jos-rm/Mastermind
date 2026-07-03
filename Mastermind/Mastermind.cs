@@ -15,38 +15,38 @@ public static class Mastermind
         if (patronSecreto is null) throw new ArgumentNullException(nameof(patronSecreto));
         if (intentoJugador is null) throw new ArgumentNullException(nameof(intentoJugador));
 
-        if (patronSecreto.Length != intentoJugador.Length)
-            throw new ArgumentException("El patrón secreto y el intento deben tener la misma longitud.");
+        var secreto = patronSecreto.Split('-', StringSplitOptions.RemoveEmptyEntries);
+        var intento = intentoJugador.Split('-', StringSplitOptions.RemoveEmptyEntries);
+
+        if (secreto.Length != intento.Length)
+            throw new ArgumentException("El patrón secreto y el intento deben tener la misma cantidad de colores.");
 
         int bienPosicionados = 0;
 
-        // Para evitar doble conteo, primero sacamos las coincidencias por posición.
-        // Luego contamos la intersección multiconjunto para las coincidencias de color en posiciones distintas.
-        var secretoCounts = new Dictionary<char, int>();
-        var jugadorCounts = new Dictionary<char, int>();
+        // Evitar doble conteo: primero contamos aciertos por posición.
+        // Luego contamos intersección multiconjunto de colores en posiciones incorrectas.
+        var secretoCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var intentoCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        for (int i = 0; i < patronSecreto.Length; i++)
+        for (int i = 0; i < secreto.Length; i++)
         {
-            char s = patronSecreto[i];
-            char j = intentoJugador[i];
-
-            if (s == j)
+            if (string.Equals(secreto[i], intento[i], StringComparison.OrdinalIgnoreCase))
             {
                 bienPosicionados++;
                 continue;
             }
 
-            if (secretoCounts.TryGetValue(s, out int sCount)) secretoCounts[s] = sCount + 1;
-            else secretoCounts[s] = 1;
+            if (secretoCounts.TryGetValue(secreto[i], out int sCount)) secretoCounts[secreto[i]] = sCount + 1;
+            else secretoCounts[secreto[i]] = 1;
 
-            if (jugadorCounts.TryGetValue(j, out int jCount)) jugadorCounts[j] = jCount + 1;
-            else jugadorCounts[j] = 1;
+            if (intentoCounts.TryGetValue(intento[i], out int jCount)) intentoCounts[intento[i]] = jCount + 1;
+            else intentoCounts[intento[i]] = 1;
         }
 
         int colorCorrecto = 0;
         foreach (var (color, sCount) in secretoCounts)
         {
-            if (jugadorCounts.TryGetValue(color, out int jCount))
+            if (intentoCounts.TryGetValue(color, out int jCount))
             {
                 colorCorrecto += Math.Min(sCount, jCount);
             }
